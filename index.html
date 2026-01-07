@@ -207,11 +207,11 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 16px;
-        height: 16px;
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(120, 150, 255, 0.55), rgba(60, 80, 180, 0));
-        filter: blur(2px);
+        background: radial-gradient(circle, rgba(165, 190, 255, 0.7), rgba(90, 120, 240, 0));
+        filter: blur(4px);
         opacity: 0;
         transition: opacity 0.2s ease;
         mix-blend-mode: screen;
@@ -248,7 +248,8 @@
         }
 
         .custom-cursor,
-        .custom-cursor__glow {
+        .custom-cursor__glow,
+        .cursor-trail {
           display: none;
         }
       }
@@ -286,6 +287,8 @@
       <div class="cursor-trail__dot"></div>
       <div class="cursor-trail__dot"></div>
       <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
     </div>
     <div class="custom-cursor__glow" aria-hidden="true"></div>
     <div class="custom-cursor" aria-hidden="true"></div>
@@ -310,21 +313,22 @@
         x: cursorX,
         y: cursorY,
       }));
+      const trailDotOffset = 10;
 
       const updateCursor = () => {
         cursor.style.transform = `translate(${cursorX - cursorHotspotX}px, ${cursorY - cursorHotspotY}px)`;
         cursorGlow.style.transform = `translate(${cursorX - cursorHotspotX + cursorWidth / 2 - glowSize / 2}px, ${
           cursorY - cursorHotspotY + cursorHeight / 2 - glowSize / 2
         }px)`;
-        let targetX = cursorX;
-        let targetY = cursorY;
+        let targetX = cursorX - cursorHotspotX + cursorWidth / 2;
+        let targetY = cursorY - cursorHotspotY + cursorHeight / 2;
         trailDots.forEach((dot, index) => {
           const position = trailPositions[index];
-          position.x += (targetX - position.x) * 0.25;
-          position.y += (targetY - position.y) * 0.25;
-          const scale = 1 - index * 0.08;
-          dot.style.transform = `translate(${position.x - 8}px, ${position.y - 8}px) scale(${scale})`;
-          dot.style.opacity = String(0.7 - index * 0.06);
+          position.x += (targetX - position.x) * 0.22;
+          position.y += (targetY - position.y) * 0.22;
+          const scale = 1 - index * 0.06;
+          dot.style.transform = `translate(${position.x - trailDotOffset}px, ${position.y - trailDotOffset}px) scale(${scale})`;
+          dot.style.opacity = String(0.65 - index * 0.045);
           targetX = position.x;
           targetY = position.y;
         });
