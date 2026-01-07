@@ -100,73 +100,60 @@
         pointer-events: none;
       }
 
-      .soundbar {
-        position: absolute;
-        bottom: 32px;
-        left: 50%;
-        transform: translateX(-50%);
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        padding: 14px 24px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(120, 135, 255, 0.15));
-        color: #f5f5f7;
-        box-shadow: 0 0 24px rgba(120, 135, 255, 0.35), 0 0 48px rgba(65, 75, 160, 0.3);
-        font-size: 12px;
-        letter-spacing: 0.35em;
-        text-transform: uppercase;
-        opacity: 0;
-        transform: translate(-50%, 12px);
+      .custom-cursor,
+      .custom-cursor__glow {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
         pointer-events: none;
-        transition: opacity 0.3s ease, transform 0.3s ease;
-        z-index: 3;
+        z-index: 5;
+        opacity: 0;
+        transition: opacity 0.2s ease;
       }
 
-      .soundbar__label {
-        font-size: 12px;
-        letter-spacing: 0.35em;
+      .custom-cursor {
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        background: radial-gradient(circle at 35% 35%, #ffffff, rgba(190, 205, 255, 0.9) 45%, rgba(120, 145, 255, 0.4));
+        box-shadow: 0 0 8px rgba(180, 200, 255, 0.9), 0 0 18px rgba(115, 135, 255, 0.8);
+        mix-blend-mode: screen;
       }
 
-      .soundbar__slider {
-        appearance: none;
-        width: 180px;
-        height: 6px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.2);
-        outline: none;
+      .custom-cursor__glow {
+        width: 80px;
+        height: 80px;
+        background: radial-gradient(circle, rgba(120, 145, 255, 0.5), rgba(50, 65, 140, 0) 70%);
+        filter: blur(8px);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        mix-blend-mode: screen;
       }
 
-      .soundbar__slider::-webkit-slider-thumb {
-        appearance: none;
-        width: 16px;
-        height: 16px;
-        border-radius: 999px;
-        background: #f5f5f7;
-        box-shadow: 0 0 12px rgba(155, 165, 255, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-      }
-
-      .soundbar__slider::-moz-range-thumb {
-        width: 16px;
-        height: 16px;
-        border-radius: 999px;
-        background: #f5f5f7;
-        box-shadow: 0 0 12px rgba(155, 165, 255, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-      }
-
-      .soundbar__slider::-moz-range-track {
-        height: 6px;
-        border-radius: 999px;
-        background: rgba(255, 255, 255, 0.2);
-      }
-
-      .video-wrapper.is-playing .soundbar {
+      body.cursor-ready .custom-cursor,
+      body.cursor-ready .custom-cursor__glow {
         opacity: 1;
-        transform: translate(-50%, 0);
-        pointer-events: auto;
+      }
+
+      body.cursor-glow-hidden .custom-cursor__glow {
+        opacity: 0;
+      }
+
+      body.cursor-clicking .custom-cursor {
+        transform: translate(-50%, -50%) scale(0.85);
+        box-shadow: 0 0 6px rgba(180, 200, 255, 0.9), 0 0 14px rgba(115, 135, 255, 0.8);
+      }
+
+      @media (hover: none) {
+        body {
+          cursor: auto;
+        }
+
+        .custom-cursor,
+        .custom-cursor__glow {
+          display: none;
+        }
       }
 
       .pause-toggle {
@@ -272,21 +259,7 @@
       <div class="begin-overlay">
         <button class="begin-button" type="button">Begin</button>
       </div>
-      <div class="soundbar" aria-live="polite">
-        <span class="soundbar__label">Volume</span>
-        <input
-          class="soundbar__slider"
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value="0.3"
-          aria-label="Volume"
-        />
-        <button class="soundbar__toggle" type="button" aria-pressed="false">Pause</button>
-      </div>
     </div>
-    <button class="pause-toggle" type="button" aria-pressed="false">Pause</button>
     <div class="custom-cursor__glow" aria-hidden="true"></div>
     <div class="custom-cursor" aria-hidden="true"></div>
 
@@ -294,8 +267,6 @@
       const video = document.getElementById("video");
       const wrapper = document.querySelector(".video-wrapper");
       const button = document.querySelector(".begin-button");
-      const volumeSlider = document.querySelector(".soundbar__slider");
-      const toggleButton = document.querySelector(".pause-toggle");
       const cursor = document.querySelector(".custom-cursor");
       const cursorGlow = document.querySelector(".custom-cursor__glow");
 
@@ -303,7 +274,7 @@
       let cursorY = window.innerHeight / 2;
 
       const updateCursor = () => {
-        cursor.style.transform = `translate(${cursorX - 9}px, ${cursorY - 9}px)`;
+        cursor.style.transform = `translate(${cursorX - 4.5}px, ${cursorY - 4.5}px)`;
         cursorGlow.style.transform = `translate(${cursorX - 40}px, ${cursorY - 40}px)`;
         requestAnimationFrame(updateCursor);
       };
@@ -324,47 +295,17 @@
       const startPlayback = async () => {
         video.muted = false;
         video.volume = 0.3;
-        volumeSlider.value = String(video.volume);
         try {
           video.currentTime = 1.45;
           await video.play();
           wrapper.classList.add("is-playing");
           document.body.classList.add("cursor-glow-hidden");
-          toggleButton.textContent = "Pause";
-          toggleButton.setAttribute("aria-pressed", "false");
         } catch (error) {
           // If playback fails, keep the overlay visible.
         }
       };
 
       button.addEventListener("click", startPlayback);
-
-      const togglePlayback = async () => {
-        if (video.paused) {
-          await video.play();
-          toggleButton.textContent = "Pause";
-          toggleButton.setAttribute("aria-pressed", "false");
-        } else {
-          video.pause();
-          toggleButton.textContent = "Play";
-          toggleButton.setAttribute("aria-pressed", "true");
-        }
-      };
-
-      toggleButton.addEventListener("click", (event) => {
-        event.stopPropagation();
-        togglePlayback();
-      });
-
-      video.addEventListener("click", togglePlayback);
-
-      volumeSlider.addEventListener("input", (event) => {
-        const value = Number(event.target.value);
-        video.volume = value;
-        if (value > 0) {
-          video.muted = false;
-        }
-      });
     </script>
   </body>
 </html>
