@@ -78,30 +78,39 @@
         transition: opacity 0.4s ease, visibility 0.4s ease;
       }
 
-      .begin-button {
+      .begin-prompt {
         font-size: 20px;
         letter-spacing: 0.4em;
         text-transform: uppercase;
-        padding: 18px 56px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(120, 135, 255, 0.15));
         color: #f5f5f7;
         cursor: none;
-        box-shadow: 0 0 24px rgba(120, 135, 255, 0.35), 0 0 48px rgba(65, 75, 160, 0.3);
         font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
-        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        text-shadow: 0 0 16px rgba(120, 135, 255, 0.6), 0 0 32px rgba(65, 75, 160, 0.5);
+        transition: transform 0.2s ease, text-shadow 0.2s ease;
+        user-select: none;
+        animation: prompt-pulse 1.8s ease-in-out infinite;
       }
 
-      .begin-button:hover {
+      .begin-prompt:hover {
         transform: translateY(-2px);
-        box-shadow: 0 0 28px rgba(155, 165, 255, 0.45), 0 0 60px rgba(80, 90, 180, 0.45);
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(145, 160, 255, 0.25));
+        text-shadow: 0 0 20px rgba(155, 165, 255, 0.7), 0 0 40px rgba(80, 90, 180, 0.6);
       }
 
-      .begin-button:active {
+      .begin-prompt:active {
         transform: translateY(0);
-        box-shadow: 0 0 20px rgba(120, 135, 255, 0.35);
+        text-shadow: 0 0 12px rgba(120, 135, 255, 0.55), 0 0 24px rgba(65, 75, 160, 0.4);
+      }
+
+      @keyframes prompt-pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          text-shadow: 0 0 14px rgba(120, 135, 255, 0.55), 0 0 30px rgba(65, 75, 160, 0.45);
+        }
+        50% {
+          transform: scale(1.03);
+          text-shadow: 0 0 22px rgba(155, 175, 255, 0.75), 0 0 44px rgba(90, 105, 200, 0.6);
+        }
       }
 
       .video-wrapper.is-playing .begin-overlay {
@@ -132,6 +141,13 @@
         pointer-events: none;
         transition: opacity 0.3s ease, transform 0.3s ease;
         z-index: 3;
+      }
+
+      .soundbar__status {
+        font-size: 12px;
+        letter-spacing: 0.35em;
+        text-transform: uppercase;
+        opacity: 0.7;
       }
 
       .soundbar__label {
@@ -193,10 +209,32 @@
       }
 
       .custom-cursor {
-        background: url("cursor.png") no-repeat center / contain;
+        background: url("cursor.cur") no-repeat center / contain;
         border-radius: 0;
         filter: drop-shadow(0 0 8px rgba(180, 200, 255, 0.65));
         mix-blend-mode: normal;
+      }
+
+      .cursor-trail {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 4;
+      }
+
+      .cursor-trail__dot {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(165, 190, 255, 0.7), rgba(90, 120, 240, 0));
+        filter: blur(4px);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        mix-blend-mode: screen;
       }
 
       .custom-cursor__glow {
@@ -210,7 +248,8 @@
       }
 
       body.cursor-ready .custom-cursor,
-      body.cursor-ready .custom-cursor__glow {
+      body.cursor-ready .custom-cursor__glow,
+      body.cursor-ready .cursor-trail__dot {
         opacity: 1;
       }
 
@@ -218,9 +257,13 @@
         opacity: 0;
       }
 
+      body.cursor-trail-hidden .cursor-trail__dot {
+        opacity: 0;
+      }
+
       body.cursor-clicking .custom-cursor {
         transform: translate(-50%, -50%) scale(0.85);
-        box-shadow: 0 0 6px rgba(180, 200, 255, 0.9), 0 0 14px rgba(115, 135, 255, 0.8);
+        box-shadow: none;
       }
 
       @media (hover: none) {
@@ -229,7 +272,8 @@
         }
 
         .custom-cursor,
-        .custom-cursor__glow {
+        .custom-cursor__glow,
+        .cursor-trail {
           display: none;
         }
       }
@@ -243,7 +287,7 @@
         Your browser does not support the video tag.
       </video>
       <div class="begin-overlay">
-        <button class="begin-button" type="button">Begin</button>
+        <div class="begin-prompt" role="button" aria-live="polite">Click to begin...</div>
       </div>
       <div class="soundbar" aria-live="polite">
         <span class="soundbar__label">Volume</span>
@@ -256,7 +300,20 @@
           value="0.3"
           aria-label="Volume"
         />
+        <span class="soundbar__status" aria-live="polite">Paused</span>
       </div>
+    </div>
+    <div class="cursor-trail" aria-hidden="true">
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
     </div>
     <div class="custom-cursor__glow" aria-hidden="true"></div>
     <div class="custom-cursor" aria-hidden="true"></div>
@@ -264,10 +321,12 @@
     <script>
       const video = document.getElementById("video");
       const wrapper = document.querySelector(".video-wrapper");
-      const button = document.querySelector(".begin-button");
+      const prompt = document.querySelector(".begin-prompt");
       const volumeSlider = document.querySelector(".soundbar__slider");
+      const playbackStatus = document.querySelector(".soundbar__status");
       const cursor = document.querySelector(".custom-cursor");
       const cursorGlow = document.querySelector(".custom-cursor__glow");
+      const trailDots = Array.from(document.querySelectorAll(".cursor-trail__dot"));
 
       let cursorX = window.innerWidth / 2;
       let cursorY = window.innerHeight / 2;
@@ -276,12 +335,29 @@
       const cursorWidth = 32;
       const cursorHeight = 48;
       const glowSize = 40;
+      const trailPositions = trailDots.map(() => ({
+        x: cursorX,
+        y: cursorY,
+      }));
+      const trailDotOffset = 10;
 
       const updateCursor = () => {
         cursor.style.transform = `translate(${cursorX - cursorHotspotX}px, ${cursorY - cursorHotspotY}px)`;
         cursorGlow.style.transform = `translate(${cursorX - cursorHotspotX + cursorWidth / 2 - glowSize / 2}px, ${
           cursorY - cursorHotspotY + cursorHeight / 2 - glowSize / 2
         }px)`;
+        let targetX = cursorX - cursorHotspotX + cursorWidth / 2;
+        let targetY = cursorY - cursorHotspotY + cursorHeight / 2;
+        trailDots.forEach((dot, index) => {
+          const position = trailPositions[index];
+          position.x += (targetX - position.x) * 0.22;
+          position.y += (targetY - position.y) * 0.22;
+          const scale = 1 - index * 0.06;
+          dot.style.transform = `translate(${position.x - trailDotOffset}px, ${position.y - trailDotOffset}px) scale(${scale})`;
+          dot.style.opacity = String(0.65 - index * 0.045);
+          targetX = position.x;
+          targetY = position.y;
+        });
         requestAnimationFrame(updateCursor);
       };
 
@@ -298,7 +374,16 @@
       window.addEventListener("pointerup", () => document.body.classList.remove("cursor-clicking"));
       updateCursor();
 
+      let hasStarted = false;
+      const setPlaybackStatus = (isPlaying) => {
+        playbackStatus.textContent = isPlaying ? "Playing" : "Paused";
+      };
+
       const startPlayback = async () => {
+        if (hasStarted) {
+          return;
+        }
+        hasStarted = true;
         video.muted = false;
         video.volume = 0.2;
         volumeSlider.value = String(video.volume);
@@ -307,12 +392,37 @@
           await video.play();
           wrapper.classList.add("is-playing");
           document.body.classList.add("cursor-glow-hidden");
+          document.body.classList.add("cursor-trail-hidden");
+          setPlaybackStatus(true);
         } catch (error) {
           // If playback fails, keep the overlay visible.
+          hasStarted = false;
         }
       };
 
-      button.addEventListener("click", startPlayback);
+      const handleStartInteraction = () => {
+        startPlayback();
+      };
+
+      prompt.addEventListener("click", handleStartInteraction);
+      window.addEventListener("pointerdown", handleStartInteraction);
+      window.addEventListener("keydown", handleStartInteraction);
+
+      video.addEventListener("click", () => {
+        if (!hasStarted) {
+          return;
+        }
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      });
+
+      video.addEventListener("play", () => setPlaybackStatus(true));
+      video.addEventListener("pause", () => setPlaybackStatus(false));
+
+      setPlaybackStatus(false);
 
       volumeSlider.addEventListener("input", (event) => {
         const value = Number(event.target.value);
