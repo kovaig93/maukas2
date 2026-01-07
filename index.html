@@ -144,6 +144,24 @@
         letter-spacing: 0.02em;
         text-align: center;
         min-height: 1.5em;
+        position: relative;
+      }
+
+      .reveal-text::after {
+        content: "|";
+        margin-left: 0.1em;
+        opacity: 1;
+        animation: cursor-blink 1s steps(2, start) infinite;
+      }
+
+      @keyframes cursor-blink {
+        0%,
+        100% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
       }
 
       .soundbar {
@@ -452,11 +470,13 @@
         ];
         const secondSentence = ["weird", "huh?"];
         let output = "";
-        const letterDelay = 54;
-        const wordDelay = 187;
-        const deleteDelay = 30;
+        const firstLetterDelay = 67;
+        const firstWordDelay = 233;
+        const secondLetterDelay = 80;
+        const secondWordDelay = 280;
+        const deleteDelay = 20;
 
-        const typeSentence = async (words) => {
+        const typeSentence = async (words, letterDelay, wordDelay) => {
           for (const word of words) {
             for (const letter of word) {
               output += letter;
@@ -477,10 +497,10 @@
           }
         };
 
-        await typeSentence(firstSentence);
-        await sleep(400);
+        await typeSentence(firstSentence, firstLetterDelay, firstWordDelay);
+        await sleep(3000);
         await deleteText();
-        await typeSentence(secondSentence);
+        await typeSentence(secondSentence, secondLetterDelay, secondWordDelay);
       };
 
       const scrollToReveal = () => {
