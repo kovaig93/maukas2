@@ -86,7 +86,7 @@
   <body>
     <div class="video-wrapper">
       <button class="play-button" type="button" aria-label="Play video">▶</button>
-      <video id="video" playsinline>
+      <video id="video" playsinline autoplay>
         <source src="videoplayback.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
@@ -131,6 +131,19 @@
         }
         updateButton();
       };
+
+      const tryAutoplay = async () => {
+        video.muted = false;
+        try {
+          await video.play();
+          requestFullscreen();
+        } catch (error) {
+          // Autoplay with sound can be blocked; leave the play button visible.
+        }
+        updateButton();
+      };
+
+      window.addEventListener("load", tryAutoplay);
 
       playButton.addEventListener("click", togglePlayback);
       video.addEventListener("click", togglePlayback);
