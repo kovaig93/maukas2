@@ -237,6 +237,10 @@
         opacity: 0;
       }
 
+      body.cursor-trail-hidden .cursor-trail__dot {
+        opacity: 0;
+      }
+
       body.cursor-clicking .custom-cursor {
         transform: translate(-50%, -50%) scale(0.85);
         box-shadow: none;
@@ -362,6 +366,7 @@
           await video.play();
           wrapper.classList.add("is-playing");
           document.body.classList.add("cursor-glow-hidden");
+          document.body.classList.add("cursor-trail-hidden");
         } catch (error) {
           // If playback fails, keep the overlay visible.
           hasStarted = false;
@@ -375,6 +380,17 @@
       prompt.addEventListener("click", handleStartInteraction);
       window.addEventListener("pointerdown", handleStartInteraction);
       window.addEventListener("keydown", handleStartInteraction);
+
+      video.addEventListener("click", () => {
+        if (!hasStarted) {
+          return;
+        }
+        if (video.paused) {
+          video.play();
+        } else {
+          video.pause();
+        }
+      });
 
       volumeSlider.addEventListener("input", (event) => {
         const value = Number(event.target.value);
