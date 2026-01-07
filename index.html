@@ -195,6 +195,28 @@
         mix-blend-mode: normal;
       }
 
+      .cursor-trail {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: 4;
+      }
+
+      .cursor-trail__dot {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(120, 150, 255, 0.55), rgba(60, 80, 180, 0));
+        filter: blur(2px);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+        mix-blend-mode: screen;
+      }
+
       .custom-cursor__glow {
         width: 40px;
         height: 40px;
@@ -206,7 +228,8 @@
       }
 
       body.cursor-ready .custom-cursor,
-      body.cursor-ready .custom-cursor__glow {
+      body.cursor-ready .custom-cursor__glow,
+      body.cursor-ready .cursor-trail__dot {
         opacity: 1;
       }
 
@@ -254,6 +277,16 @@
         />
       </div>
     </div>
+    <div class="cursor-trail" aria-hidden="true">
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+      <div class="cursor-trail__dot"></div>
+    </div>
     <div class="custom-cursor__glow" aria-hidden="true"></div>
     <div class="custom-cursor" aria-hidden="true"></div>
 
@@ -264,6 +297,7 @@
       const volumeSlider = document.querySelector(".soundbar__slider");
       const cursor = document.querySelector(".custom-cursor");
       const cursorGlow = document.querySelector(".custom-cursor__glow");
+      const trailDots = Array.from(document.querySelectorAll(".cursor-trail__dot"));
 
       let cursorX = window.innerWidth / 2;
       let cursorY = window.innerHeight / 2;
@@ -272,12 +306,28 @@
       const cursorWidth = 32;
       const cursorHeight = 48;
       const glowSize = 40;
+      const trailPositions = trailDots.map(() => ({
+        x: cursorX,
+        y: cursorY,
+      }));
 
       const updateCursor = () => {
         cursor.style.transform = `translate(${cursorX - cursorHotspotX}px, ${cursorY - cursorHotspotY}px)`;
         cursorGlow.style.transform = `translate(${cursorX - cursorHotspotX + cursorWidth / 2 - glowSize / 2}px, ${
           cursorY - cursorHotspotY + cursorHeight / 2 - glowSize / 2
         }px)`;
+        let targetX = cursorX;
+        let targetY = cursorY;
+        trailDots.forEach((dot, index) => {
+          const position = trailPositions[index];
+          position.x += (targetX - position.x) * 0.25;
+          position.y += (targetY - position.y) * 0.25;
+          const scale = 1 - index * 0.08;
+          dot.style.transform = `translate(${position.x - 8}px, ${position.y - 8}px) scale(${scale})`;
+          dot.style.opacity = String(0.7 - index * 0.06);
+          targetX = position.x;
+          targetY = position.y;
+        });
         requestAnimationFrame(updateCursor);
       };
 
