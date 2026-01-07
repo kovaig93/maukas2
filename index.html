@@ -500,6 +500,7 @@
         await typeSentence(firstSentence, firstLetterDelay, firstWordDelay);
         await sleep(3000);
         await deleteText();
+        await sleep(2000);
         await typeSentence(secondSentence, secondLetterDelay, secondWordDelay);
       };
 
@@ -531,7 +532,7 @@
           setPlaybackStatus(true);
           setTimeout(() => {
             scrollToReveal();
-          }, 5000);
+          }, 8000);
         } catch (error) {
           // If playback fails, keep the overlay visible.
           hasStarted = false;
