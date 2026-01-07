@@ -67,13 +67,10 @@
         transition: opacity 0.4s ease, visibility 0.4s ease;
       }
 
-      .begin-overlay.is-hidden {
-        opacity: 0;
-        visibility: hidden;
-        pointer-events: none;
-      }
-
       .begin-button {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
         font-size: 20px;
         letter-spacing: 0.4em;
         text-transform: uppercase;
@@ -88,6 +85,48 @@
         transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
       }
 
+      .begin-button__label {
+        pointer-events: none;
+      }
+
+      .begin-button__bar {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 6px;
+        height: 18px;
+        opacity: 0;
+        transform: translateY(6px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+
+      .begin-button__bar span {
+        width: 6px;
+        border-radius: 999px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(120, 135, 255, 0.35));
+        box-shadow: 0 0 12px rgba(155, 165, 255, 0.55);
+      }
+
+      .begin-button__bar span:nth-child(1) {
+        height: 10px;
+      }
+
+      .begin-button__bar span:nth-child(2) {
+        height: 16px;
+      }
+
+      .begin-button__bar span:nth-child(3) {
+        height: 12px;
+      }
+
+      .begin-button__bar span:nth-child(4) {
+        height: 18px;
+      }
+
+      .begin-button__bar span:nth-child(5) {
+        height: 14px;
+      }
+
       .begin-button:hover {
         transform: translateY(-2px);
         box-shadow: 0 0 28px rgba(155, 165, 255, 0.45), 0 0 60px rgba(80, 90, 180, 0.45);
@@ -99,6 +138,16 @@
         box-shadow: 0 0 20px rgba(120, 135, 255, 0.35);
       }
 
+      .video-wrapper.is-playing .begin-button__bar {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .video-wrapper.is-playing .begin-overlay {
+        background: transparent;
+        pointer-events: none;
+      }
+
     </style>
   </head>
   <body>
@@ -108,23 +157,30 @@
         Your browser does not support the video tag.
       </video>
       <div class="begin-overlay">
-        <button class="begin-button" type="button">Begin</button>
+        <button class="begin-button" type="button">
+          <span class="begin-button__label">Begin</span>
+          <span class="begin-button__bar" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+        </button>
       </div>
     </div>
 
     <script>
       const video = document.getElementById("video");
       const wrapper = document.querySelector(".video-wrapper");
-      const overlay = document.querySelector(".begin-overlay");
       const button = document.querySelector(".begin-button");
 
       const startPlayback = async () => {
         video.muted = false;
-        video.volume = 1;
+        video.volume = 0.5;
         try {
           await video.play();
           wrapper.classList.add("is-playing");
-          overlay.classList.add("is-hidden");
         } catch (error) {
           // If playback fails, keep the overlay visible.
         }
