@@ -193,7 +193,7 @@
       }
 
       .custom-cursor {
-        background: url("cursor.png") no-repeat 0 0 / auto;
+        background: url("cursor.png") no-repeat center / contain;
         border-radius: 0;
         filter: drop-shadow(0 0 8px rgba(180, 200, 255, 0.65));
         mix-blend-mode: normal;
@@ -271,11 +271,11 @@
 
       let cursorX = window.innerWidth / 2;
       let cursorY = window.innerHeight / 2;
-      let cursorHotspotX = 2;
-      let cursorHotspotY = 2;
-      let cursorWidth = 32;
-      let cursorHeight = 48;
-      let glowSize = 40;
+      const cursorHotspotX = 2;
+      const cursorHotspotY = 2;
+      const cursorWidth = 32;
+      const cursorHeight = 48;
+      const glowSize = 40;
 
       const updateCursor = () => {
         cursor.style.transform = `translate(${cursorX - cursorHotspotX}px, ${cursorY - cursorHotspotY}px)`;
@@ -297,58 +297,6 @@
       window.addEventListener("pointerdown", () => document.body.classList.add("cursor-clicking"));
       window.addEventListener("pointerup", () => document.body.classList.remove("cursor-clicking"));
       updateCursor();
-
-      const trimCursorImage = () => {
-        const image = new Image();
-        image.src = "cursor.png";
-        image.onload = () => {
-          const canvas = document.createElement("canvas");
-          canvas.width = image.width;
-          canvas.height = image.height;
-          const context = canvas.getContext("2d");
-          if (!context) {
-            return;
-          }
-          context.drawImage(image, 0, 0);
-          const { data, width, height } = context.getImageData(0, 0, canvas.width, canvas.height);
-          let minX = width;
-          let minY = height;
-          let maxX = 0;
-          let maxY = 0;
-          let hasPixels = false;
-
-          for (let y = 0; y < height; y += 1) {
-            for (let x = 0; x < width; x += 1) {
-              const alpha = data[(y * width + x) * 4 + 3];
-              if (alpha > 0) {
-                hasPixels = true;
-                if (x < minX) minX = x;
-                if (y < minY) minY = y;
-                if (x > maxX) maxX = x;
-                if (y > maxY) maxY = y;
-              }
-            }
-          }
-
-          if (!hasPixels) {
-            return;
-          }
-
-          cursorWidth = maxX - minX + 1;
-          cursorHeight = maxY - minY + 1;
-          cursorHotspotX = Math.max(0, cursorHotspotX - minX);
-          cursorHotspotY = Math.max(0, cursorHotspotY - minY);
-          glowSize = Math.max(cursorWidth, cursorHeight) * 1.2;
-          cursor.style.width = `${cursorWidth}px`;
-          cursor.style.height = `${cursorHeight}px`;
-          cursor.style.backgroundSize = `${image.width}px ${image.height}px`;
-          cursor.style.backgroundPosition = `-${minX}px -${minY}px`;
-          cursorGlow.style.width = `${glowSize}px`;
-          cursorGlow.style.height = `${glowSize}px`;
-        };
-      };
-
-      trimCursorImage();
 
       const startPlayback = async () => {
         video.muted = false;
