@@ -37,8 +37,9 @@
       }
 
       .video-wrapper {
-        position: fixed;
-        inset: 0;
+        position: relative;
+        min-height: 100vh;
+        width: 100%;
         display: grid;
         place-items: center;
         background: radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 45%),
@@ -55,10 +56,15 @@
       }
 
       video {
-        width: 100vw;
-        height: 100vh;
+        position: absolute;
+        inset: 0;
+        display: block;
+        width: 100%;
+        height: 100%;
         min-width: 100%;
         min-height: 100%;
+        max-width: none;
+        max-height: none;
         object-fit: cover;
         object-position: center;
         filter: saturate(1.1) contrast(1.05);
@@ -120,6 +126,42 @@
         opacity: 0;
         visibility: hidden;
         pointer-events: none;
+      }
+
+      .reveal-section {
+        min-height: 100vh;
+        background: #000;
+        display: grid;
+        place-items: center;
+        padding: 48px 24px;
+      }
+
+      .reveal-text {
+        font-size: clamp(28px, 4vw, 56px);
+        font-family: "Brush Script MT", "Segoe Script", "Snell Roundhand", cursive;
+        color: #fff;
+        text-shadow: 0 0 12px rgba(255, 255, 255, 0.75), 0 0 24px rgba(255, 255, 255, 0.55);
+        letter-spacing: 0.02em;
+        text-align: center;
+        min-height: 1.5em;
+        position: relative;
+      }
+
+      .reveal-text::after {
+        content: "|";
+        margin-left: 0.1em;
+        opacity: 1;
+        animation: cursor-blink 1s steps(2, start) infinite;
+      }
+
+      @keyframes cursor-blink {
+        0%,
+        100% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
       }
 
       .soundbar {
@@ -306,6 +348,9 @@
         <span class="soundbar__status" aria-live="polite">Paused</span>
       </div>
     </div>
+    <section class="reveal-section" aria-live="polite">
+      <div class="reveal-text" id="reveal-text"></div>
+    </section>
     <div class="cursor-trail" aria-hidden="true">
       <div class="cursor-trail__dot"></div>
       <div class="cursor-trail__dot"></div>
@@ -327,6 +372,8 @@
       const prompt = document.querySelector(".begin-prompt");
       const volumeSlider = document.querySelector(".soundbar__slider");
       const playbackStatus = document.querySelector(".soundbar__status");
+      const revealSection = document.querySelector(".reveal-section");
+      const revealText = document.getElementById("reveal-text");
       const cursor = document.querySelector(".custom-cursor");
       const cursorGlow = document.querySelector(".custom-cursor__glow");
       const trailDots = Array.from(document.querySelectorAll(".cursor-trail__dot"));
@@ -378,8 +425,94 @@
       updateCursor();
 
       let hasStarted = false;
+      let hasScrolled = false;
       const setPlaybackStatus = (isPlaying) => {
         playbackStatus.textContent = isPlaying ? "Playing" : "Paused";
+      };
+
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      const playRevealText = async () => {
+        if (!revealText || revealText.dataset.started === "true") {
+          return;
+        }
+        revealText.dataset.started = "true";
+        const firstSentence = [
+          "Did",
+          "you",
+          "know",
+          "he",
+          "legally",
+          "changed",
+          "his",
+          "will",
+          "just",
+          "two",
+          "days",
+          "before",
+          "he",
+          "died,",
+          "moving",
+          "nearly",
+          "all",
+          "his",
+          "money",
+          "into",
+          "a",
+          "trust",
+          "that",
+          "didn’t",
+          "have",
+          "to",
+          "name",
+          "beneficiaries",
+          "publicly?",
+        ];
+        const secondSentence = ["weird", "huh?"];
+        let output = "";
+        const firstLetterDelay = 67;
+        const firstWordDelay = 233;
+        const secondLetterDelay = 80;
+        const secondWordDelay = 280;
+        const deleteDelay = 20;
+
+        const typeSentence = async (words, letterDelay, wordDelay) => {
+          for (const word of words) {
+            for (const letter of word) {
+              output += letter;
+              revealText.textContent = output;
+              await sleep(letterDelay);
+            }
+            output += " ";
+            revealText.textContent = output;
+            await sleep(wordDelay);
+          }
+        };
+
+        const deleteText = async () => {
+          while (output.length > 0) {
+            output = output.slice(0, -1);
+            revealText.textContent = output;
+            await sleep(deleteDelay);
+          }
+        };
+
+        await typeSentence(firstSentence, firstLetterDelay, firstWordDelay);
+        await sleep(3000);
+        await deleteText();
+        await sleep(2000);
+        await typeSentence(secondSentence, secondLetterDelay, secondWordDelay);
+      };
+
+      const scrollToReveal = () => {
+        if (!revealSection || hasScrolled) {
+          return;
+        }
+        hasScrolled = true;
+        window.scrollTo({ top: revealSection.offsetTop, behavior: "smooth" });
+        setTimeout(() => {
+          playRevealText();
+        }, 800);
       };
 
       const startPlayback = async () => {
@@ -397,6 +530,9 @@
           document.body.classList.add("cursor-glow-hidden");
           document.body.classList.add("cursor-trail-hidden");
           setPlaybackStatus(true);
+          setTimeout(() => {
+            scrollToReveal();
+          }, 8000);
         } catch (error) {
           // If playback fails, keep the overlay visible.
           hasStarted = false;
