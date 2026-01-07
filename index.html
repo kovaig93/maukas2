@@ -174,9 +174,8 @@
         position: fixed;
         top: 0;
         left: 0;
-        width: 9px;
-        height: 9px;
-        border-radius: 50%;
+        width: 32px;
+        height: 48px;
         pointer-events: none;
         z-index: 5;
         opacity: 0;
@@ -184,10 +183,10 @@
       }
 
       .custom-cursor {
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        background: radial-gradient(circle at 35% 35%, #ffffff, rgba(190, 205, 255, 0.9) 45%, rgba(120, 145, 255, 0.4));
-        box-shadow: 0 0 8px rgba(180, 200, 255, 0.9), 0 0 18px rgba(115, 135, 255, 0.8);
-        mix-blend-mode: screen;
+        background: url("cursor.png") no-repeat center / contain;
+        border-radius: 0;
+        filter: drop-shadow(0 0 8px rgba(180, 200, 255, 0.65));
+        mix-blend-mode: normal;
       }
 
       .custom-cursor__glow {
@@ -262,10 +261,13 @@
 
       let cursorX = window.innerWidth / 2;
       let cursorY = window.innerHeight / 2;
+      const cursorHotspotX = 2;
+      const cursorHotspotY = 2;
+      const glowRadius = 20;
 
       const updateCursor = () => {
-        cursor.style.transform = `translate(${cursorX - 4.5}px, ${cursorY - 4.5}px)`;
-        cursorGlow.style.transform = `translate(${cursorX - 20}px, ${cursorY - 20}px)`;
+        cursor.style.transform = `translate(${cursorX - cursorHotspotX}px, ${cursorY - cursorHotspotY}px)`;
+        cursorGlow.style.transform = `translate(${cursorX - glowRadius}px, ${cursorY - glowRadius}px)`;
         requestAnimationFrame(updateCursor);
       };
 
