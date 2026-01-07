@@ -78,7 +78,7 @@
         transition: opacity 0.4s ease, visibility 0.4s ease;
       }
 
-      .begin-button {
+      .begin-prompt {
         font-size: 20px;
         letter-spacing: 0.4em;
         text-transform: uppercase;
@@ -91,15 +91,16 @@
         box-shadow: 0 0 24px rgba(120, 135, 255, 0.35), 0 0 48px rgba(65, 75, 160, 0.3);
         font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
         transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        user-select: none;
       }
 
-      .begin-button:hover {
+      .begin-prompt:hover {
         transform: translateY(-2px);
         box-shadow: 0 0 28px rgba(155, 165, 255, 0.45), 0 0 60px rgba(80, 90, 180, 0.45);
         background: linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(145, 160, 255, 0.25));
       }
 
-      .begin-button:active {
+      .begin-prompt:active {
         transform: translateY(0);
         box-shadow: 0 0 20px rgba(120, 135, 255, 0.35);
       }
@@ -193,7 +194,7 @@
       }
 
       .custom-cursor {
-        background: url("cursor.png") no-repeat center / contain;
+        background: url("cursor.cur") no-repeat center / contain;
         border-radius: 0;
         filter: drop-shadow(0 0 8px rgba(180, 200, 255, 0.65));
         mix-blend-mode: normal;
@@ -220,7 +221,7 @@
 
       body.cursor-clicking .custom-cursor {
         transform: translate(-50%, -50%) scale(0.85);
-        box-shadow: 0 0 6px rgba(180, 200, 255, 0.9), 0 0 14px rgba(115, 135, 255, 0.8);
+        box-shadow: none;
       }
 
       @media (hover: none) {
@@ -243,7 +244,7 @@
         Your browser does not support the video tag.
       </video>
       <div class="begin-overlay">
-        <button class="begin-button" type="button">Begin</button>
+        <div class="begin-prompt" role="button" aria-live="polite">Click to begin...</div>
       </div>
       <div class="soundbar" aria-live="polite">
         <span class="soundbar__label">Volume</span>
@@ -264,7 +265,7 @@
     <script>
       const video = document.getElementById("video");
       const wrapper = document.querySelector(".video-wrapper");
-      const button = document.querySelector(".begin-button");
+      const prompt = document.querySelector(".begin-prompt");
       const volumeSlider = document.querySelector(".soundbar__slider");
       const cursor = document.querySelector(".custom-cursor");
       const cursorGlow = document.querySelector(".custom-cursor__glow");
@@ -298,7 +299,12 @@
       window.addEventListener("pointerup", () => document.body.classList.remove("cursor-clicking"));
       updateCursor();
 
+      let hasStarted = false;
       const startPlayback = async () => {
+        if (hasStarted) {
+          return;
+        }
+        hasStarted = true;
         video.muted = false;
         video.volume = 0.2;
         volumeSlider.value = String(video.volume);
@@ -309,10 +315,17 @@
           document.body.classList.add("cursor-glow-hidden");
         } catch (error) {
           // If playback fails, keep the overlay visible.
+          hasStarted = false;
         }
       };
 
-      button.addEventListener("click", startPlayback);
+      const handleStartInteraction = () => {
+        startPlayback();
+      };
+
+      prompt.addEventListener("click", handleStartInteraction);
+      window.addEventListener("pointerdown", handleStartInteraction);
+      window.addEventListener("keydown", handleStartInteraction);
 
       volumeSlider.addEventListener("input", (event) => {
         const value = Number(event.target.value);
