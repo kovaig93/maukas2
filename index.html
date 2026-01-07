@@ -419,7 +419,7 @@
           return;
         }
         revealText.dataset.started = "true";
-        const words = [
+        const firstSentence = [
           "Did",
           "you",
           "know",
@@ -450,17 +450,37 @@
           "beneficiaries",
           "publicly?",
         ];
+        const secondSentence = ["weird", "huh?"];
         let output = "";
-        for (const word of words) {
-          for (const letter of word) {
-            output += letter;
+        const letterDelay = 54;
+        const wordDelay = 187;
+        const deleteDelay = 30;
+
+        const typeSentence = async (words) => {
+          for (const word of words) {
+            for (const letter of word) {
+              output += letter;
+              revealText.textContent = output;
+              await sleep(letterDelay);
+            }
+            output += " ";
             revealText.textContent = output;
-            await sleep(80);
+            await sleep(wordDelay);
           }
-          output += " ";
-          revealText.textContent = output;
-          await sleep(280);
-        }
+        };
+
+        const deleteText = async () => {
+          while (output.length > 0) {
+            output = output.slice(0, -1);
+            revealText.textContent = output;
+            await sleep(deleteDelay);
+          }
+        };
+
+        await typeSentence(firstSentence);
+        await sleep(400);
+        await deleteText();
+        await typeSentence(secondSentence);
       };
 
       const scrollToReveal = () => {
