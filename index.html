@@ -649,7 +649,7 @@
         await sleep(1000);
         revealText.classList.add("is-final");
         startTypingSound();
-        await typeSentence(finalSentence, finalLetterDelay, finalWordDelay);
+        await typeSentence(finalSentence, finalLetterDelay, 0);
         stopTypingSound();
       };
 
