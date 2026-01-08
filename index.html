@@ -303,7 +303,7 @@
         top: 0;
         left: 0;
         width: 32px;
-        height: 48px;
+        height: 32px;
         pointer-events: none;
         z-index: 5;
         opacity: 0;
@@ -441,7 +441,7 @@
       const cursorHotspotX = 2;
       const cursorHotspotY = 2;
       const cursorWidth = 32;
-      const cursorHeight = 48;
+      const cursorHeight = 32;
       const glowSize = 40;
       const trailPositions = trailDots.map(() => ({
         x: cursorX,
@@ -544,6 +544,14 @@
       if (isScrollLocked) {
         bindScrollLock();
       }
+
+      if ("scrollRestoration" in history) {
+        history.scrollRestoration = "manual";
+      }
+
+      window.addEventListener("load", () => {
+        window.scrollTo({ top: 0, behavior: "auto" });
+      });
 
       const typingSound = new Audio(typingSoundSrc);
       typingSound.volume = 0.175;
