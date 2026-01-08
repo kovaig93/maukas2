@@ -433,10 +433,24 @@
 
       const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-      const playTypingSound = () => {
-        const sound = new Audio(typingSoundSrc);
-        sound.volume = 0.35;
-        sound.play();
+      const typingSound = new Audio(typingSoundSrc);
+      typingSound.volume = 0.35;
+      typingSound.loop = true;
+
+      const startTypingSound = () => {
+        if (!typingSound.paused) {
+          return;
+        }
+        typingSound.currentTime = 0;
+        typingSound.play();
+      };
+
+      const stopTypingSound = () => {
+        if (typingSound.paused) {
+          return;
+        }
+        typingSound.pause();
+        typingSound.currentTime = 0;
       };
 
       const playRevealText = async () => {
@@ -488,7 +502,6 @@
             for (const letter of word) {
               output += letter;
               revealText.textContent = output;
-              playTypingSound();
               await sleep(letterDelay);
             }
             output += " ";
@@ -505,11 +518,15 @@
           }
         };
 
+        startTypingSound();
         await typeSentence(firstSentence, firstLetterDelay, firstWordDelay);
+        stopTypingSound();
         await sleep(3000);
         await deleteText();
         await sleep(1000);
+        startTypingSound();
         await typeSentence(secondSentence, secondLetterDelay, secondWordDelay);
+        stopTypingSound();
       };
 
       const scrollToReveal = () => {
