@@ -659,9 +659,22 @@
         }
         hasScrolled = true;
         window.scrollTo({ top: revealSection.offsetTop, behavior: "smooth" });
-        const reducedVolume = Math.max(0, video.volume * 0.3);
-        video.volume = reducedVolume;
-        volumeSlider.value = String(reducedVolume);
+        const startVolume = video.volume;
+        const reducedVolume = Math.max(0, startVolume * 0.3);
+        const fadeDuration = 1200;
+        const fadeStart = performance.now();
+
+        const fadeVolume = (now) => {
+          const progress = Math.min(1, (now - fadeStart) / fadeDuration);
+          const nextVolume = startVolume + (reducedVolume - startVolume) * progress;
+          video.volume = nextVolume;
+          volumeSlider.value = String(nextVolume);
+          if (progress < 1) {
+            requestAnimationFrame(fadeVolume);
+          }
+        };
+
+        requestAnimationFrame(fadeVolume);
         setTimeout(() => {
           playRevealText();
         }, 800);
