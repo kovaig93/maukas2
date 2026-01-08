@@ -151,14 +151,10 @@
         position: relative;
       }
 
-      .question-text {
-        font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
-        font-size: clamp(34px, 5vw, 72px);
-        letter-spacing: 0.01em;
+      .question-canvas {
+        width: min(960px, 90vw);
+        height: clamp(80px, 12vw, 140px);
         margin-bottom: 24px;
-        color: #d9c2ff;
-        text-shadow: 0 0 18px rgba(184, 130, 255, 0.85), 0 0 42px rgba(124, 66, 255, 0.7),
-          0 0 70px rgba(90, 40, 200, 0.65);
       }
 
       .reveal-text.is-final {
@@ -423,7 +419,7 @@
       </div>
     </div>
     <section class="reveal-section" aria-live="polite">
-      <div class="reveal-text question-text" id="question-text"></div>
+      <canvas class="question-canvas" id="question-canvas" aria-label="Was He Innocent?"></canvas>
       <div class="reveal-text" id="reveal-text"></div>
     </section>
     <div class="cursor-trail" aria-hidden="true">
@@ -448,7 +444,7 @@
       const volumeSlider = document.querySelector(".soundbar__slider");
       const playbackStatus = document.querySelector(".soundbar__status");
       const revealSection = document.querySelector(".reveal-section");
-      const questionText = document.getElementById("question-text");
+      const questionCanvas = document.getElementById("question-canvas");
       const revealText = document.getElementById("reveal-text");
       const cursor = document.querySelector(".custom-cursor");
       const cursorGlow = document.querySelector(".custom-cursor__glow");
@@ -467,6 +463,7 @@
         y: cursorY,
       }));
       const trailDotOffset = 10;
+      let isAutoDrawing = false;
 
       const updateCursor = () => {
         cursor.style.transform = `translate(${cursorX - cursorHotspotX}px, ${cursorY - cursorHotspotY}px)`;
@@ -489,6 +486,9 @@
       };
 
       const handlePointerMove = (event) => {
+        if (isAutoDrawing) {
+          return;
+        }
         cursorX = event.clientX;
         cursorY = event.clientY;
         if (!document.body.classList.contains("cursor-ready")) {
@@ -590,8 +590,11 @@
         }
         revealText.dataset.started = "true";
         revealText.classList.remove("is-final");
-        if (questionText) {
-          questionText.textContent = "";
+        if (questionCanvas) {
+          const ctx = questionCanvas.getContext("2d");
+          if (ctx) {
+            ctx.clearRect(0, 0, questionCanvas.width, questionCanvas.height);
+          }
         }
         const firstSentence = [
           "Did",
@@ -626,7 +629,7 @@
         ];
         const secondSentence = ["weird", "huh?"];
         const finalSentence = ["discord.gg/ely"];
-        const questionSentence = ["Was", "He", "Innocent?"];
+        const questionSentence = "Was He Innocent?";
         let output = "";
         const firstLetterDelay = 67;
         const firstWordDelay = 155;
@@ -634,8 +637,7 @@
         const secondWordDelay = 187;
         const finalLetterDelay = 150;
         const finalWordDelay = 400;
-        const questionLetterDelay = 110;
-        const questionWordDelay = 200;
+        const questionLetterDelay = 120;
         const firstDeleteDelay = 20;
         const secondDeleteDelay = 80;
 
@@ -652,23 +654,43 @@
           }
         };
 
-        const typeSentenceTo = async (target, words, letterDelay, wordDelay) => {
-          if (!target) {
+        const drawQuestionText = async () => {
+          if (!questionCanvas) {
             return;
           }
-          let line = "";
-          for (const word of words) {
-            for (const letter of word) {
-              line += letter;
-              target.textContent = line;
-              await sleep(letterDelay);
-            }
-            line += " ";
-            target.textContent = line;
-            if (wordDelay > 0) {
-              await sleep(wordDelay);
-            }
+          const ctx = questionCanvas.getContext("2d");
+          if (!ctx) {
+            return;
           }
+          const pixelRatio = window.devicePixelRatio || 1;
+          const rect = questionCanvas.getBoundingClientRect();
+          questionCanvas.width = rect.width * pixelRatio;
+          questionCanvas.height = rect.height * pixelRatio;
+          ctx.scale(pixelRatio, pixelRatio);
+          const fontSize = Math.min(72, Math.max(34, window.innerWidth * 0.05));
+          ctx.font = `${fontSize}px "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive`;
+          ctx.lineWidth = 2.2;
+          ctx.strokeStyle = "#d9c2ff";
+          ctx.shadowColor = "rgba(124, 66, 255, 0.7)";
+          ctx.shadowBlur = 18;
+          ctx.textBaseline = "middle";
+          ctx.textAlign = "left";
+          const fullWidth = ctx.measureText(questionSentence).width;
+          const startX = (rect.width - fullWidth) / 2;
+          const baselineY = rect.height / 2;
+          let line = "";
+          isAutoDrawing = true;
+          document.body.classList.add("cursor-ready");
+          for (const letter of questionSentence) {
+            line += letter;
+            ctx.clearRect(0, 0, rect.width, rect.height);
+            ctx.strokeText(line, startX, baselineY);
+            const drawnWidth = ctx.measureText(line).width;
+            cursorX = rect.left + startX + drawnWidth;
+            cursorY = rect.top + baselineY;
+            await sleep(questionLetterDelay);
+          }
+          isAutoDrawing = false;
         };
 
         const deleteText = async (delay) => {
@@ -695,9 +717,9 @@
         startTypingSound();
         await typeSentence(finalSentence, finalLetterDelay, 0);
         stopTypingSound();
-        await sleep(600);
+        await sleep(400);
         startTypingSound();
-        await typeSentenceTo(questionText, questionSentence, questionLetterDelay, questionWordDelay);
+        await drawQuestionText();
         stopTypingSound();
       };
 
