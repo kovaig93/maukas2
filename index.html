@@ -26,6 +26,10 @@
         cursor: none;
       }
 
+      body.scroll-locked {
+        overflow: hidden;
+      }
+
       button,
       input,
       textarea,
@@ -147,6 +151,13 @@
         position: relative;
       }
 
+      .reveal-text.is-final {
+        color: #cdb2ff;
+        text-shadow: 0 0 16px rgba(184, 130, 255, 0.85), 0 0 36px rgba(124, 66, 255, 0.7),
+          0 0 60px rgba(90, 40, 200, 0.65);
+        animation: neon-flicker 3.4s infinite;
+      }
+
       .reveal-text::after {
         content: "|";
         margin-left: 0.1em;
@@ -160,6 +171,52 @@
           opacity: 0;
         }
         50% {
+          opacity: 1;
+        }
+      }
+
+      @keyframes neon-flicker {
+        0%,
+        100% {
+          opacity: 1;
+          text-shadow: 0 0 16px rgba(184, 130, 255, 0.85), 0 0 36px rgba(124, 66, 255, 0.7),
+            0 0 60px rgba(90, 40, 200, 0.65);
+        }
+        5% {
+          opacity: 0.6;
+          text-shadow: 0 0 12px rgba(184, 130, 255, 0.6), 0 0 26px rgba(124, 66, 255, 0.45);
+        }
+        8% {
+          opacity: 0.95;
+        }
+        12% {
+          opacity: 0.4;
+        }
+        16% {
+          opacity: 1;
+        }
+        22% {
+          opacity: 0.75;
+        }
+        28% {
+          opacity: 1;
+        }
+        35% {
+          opacity: 0.55;
+        }
+        40% {
+          opacity: 1;
+        }
+        56% {
+          opacity: 0.7;
+        }
+        62% {
+          opacity: 1;
+        }
+        74% {
+          opacity: 0.5;
+        }
+        80% {
           opacity: 1;
         }
       }
@@ -325,7 +382,7 @@
 
     </style>
   </head>
-  <body>
+  <body class="scroll-locked">
     <div class="video-wrapper">
       <video id="video" playsinline loop>
         <source src="videoplayback.mp4" type="video/mp4" />
@@ -433,8 +490,63 @@
 
       const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+      const scrollLockClass = "scroll-locked";
+      const scrollKeys = new Set(["Space", "ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End"]);
+      let isScrollLocked = document.body.classList.contains(scrollLockClass);
+
+      const preventScroll = (event) => {
+        if (!isScrollLocked) {
+          return;
+        }
+        event.preventDefault();
+      };
+
+      const handleScrollKey = (event) => {
+        if (!isScrollLocked) {
+          return;
+        }
+        if (scrollKeys.has(event.code)) {
+          event.preventDefault();
+        }
+      };
+
+      const bindScrollLock = () => {
+        window.addEventListener("wheel", preventScroll, { passive: false });
+        window.addEventListener("touchmove", preventScroll, { passive: false });
+        window.addEventListener("keydown", handleScrollKey);
+      };
+
+      const unbindScrollLock = () => {
+        window.removeEventListener("wheel", preventScroll);
+        window.removeEventListener("touchmove", preventScroll);
+        window.removeEventListener("keydown", handleScrollKey);
+      };
+
+      const lockScroll = () => {
+        if (isScrollLocked) {
+          return;
+        }
+        isScrollLocked = true;
+        document.body.classList.add(scrollLockClass);
+        window.scrollTo({ top: 0, behavior: "auto" });
+        bindScrollLock();
+      };
+
+      const unlockScroll = () => {
+        if (!isScrollLocked) {
+          return;
+        }
+        isScrollLocked = false;
+        document.body.classList.remove(scrollLockClass);
+        unbindScrollLock();
+      };
+
+      if (isScrollLocked) {
+        bindScrollLock();
+      }
+
       const typingSound = new Audio(typingSoundSrc);
-      typingSound.volume = 0.1;
+      typingSound.volume = 0.175;
       typingSound.loop = true;
 
       const startTypingSound = () => {
@@ -458,6 +570,7 @@
           return;
         }
         revealText.dataset.started = "true";
+        revealText.classList.remove("is-final");
         const firstSentence = [
           "Did",
           "you",
@@ -490,11 +603,14 @@
           "publicly?",
         ];
         const secondSentence = ["weird", "huh?"];
+        const finalSentence = ["discord.gg/ely"];
         let output = "";
         const firstLetterDelay = 67;
         const firstWordDelay = 155;
         const secondLetterDelay = 80;
         const secondWordDelay = 187;
+        const finalLetterDelay = 75;
+        const finalWordDelay = 200;
         const deleteDelay = 20;
 
         const typeSentence = async (words, letterDelay, wordDelay) => {
@@ -527,6 +643,12 @@
         startTypingSound();
         await typeSentence(secondSentence, secondLetterDelay, secondWordDelay);
         stopTypingSound();
+        await sleep(1600);
+        await deleteText();
+        revealText.classList.add("is-final");
+        startTypingSound();
+        await typeSentence(finalSentence, finalLetterDelay, finalWordDelay);
+        stopTypingSound();
       };
 
       const scrollToReveal = () => {
@@ -548,6 +670,7 @@
           return;
         }
         hasStarted = true;
+        lockScroll();
         video.muted = false;
         video.volume = 0.2;
         volumeSlider.value = String(video.volume);
@@ -559,11 +682,13 @@
           document.body.classList.add("cursor-trail-hidden");
           setPlaybackStatus(true);
           setTimeout(() => {
+            unlockScroll();
             scrollToReveal();
-          }, 8000);
+          }, 10000);
         } catch (error) {
           // If playback fails, keep the overlay visible.
           hasStarted = false;
+          unlockScroll();
         }
       };
 
