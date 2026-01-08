@@ -151,16 +151,6 @@
         position: relative;
       }
 
-      .question-text {
-        font-family: "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive;
-        font-size: clamp(34px, 5vw, 72px);
-        letter-spacing: 0.01em;
-        margin-bottom: 24px;
-        color: #d9c2ff;
-        text-shadow: 0 0 18px rgba(184, 130, 255, 0.85), 0 0 42px rgba(124, 66, 255, 0.7),
-          0 0 70px rgba(90, 40, 200, 0.65);
-      }
-
       .reveal-text.is-final {
         color: #cdb2ff;
         text-shadow: 0 0 16px rgba(184, 130, 255, 0.85), 0 0 36px rgba(124, 66, 255, 0.7),
@@ -169,13 +159,6 @@
       }
 
       .reveal-text::after {
-        content: "|";
-        margin-left: 0.1em;
-        opacity: 1;
-        animation: cursor-blink 1s steps(2, start) infinite;
-      }
-
-      .question-text::after {
         content: "|";
         margin-left: 0.1em;
         opacity: 1;
@@ -423,7 +406,6 @@
       </div>
     </div>
     <section class="reveal-section" aria-live="polite">
-      <div class="reveal-text question-text" id="question-text"></div>
       <div class="reveal-text" id="reveal-text"></div>
     </section>
     <div class="cursor-trail" aria-hidden="true">
@@ -448,7 +430,6 @@
       const volumeSlider = document.querySelector(".soundbar__slider");
       const playbackStatus = document.querySelector(".soundbar__status");
       const revealSection = document.querySelector(".reveal-section");
-      const questionText = document.getElementById("question-text");
       const revealText = document.getElementById("reveal-text");
       const cursor = document.querySelector(".custom-cursor");
       const cursorGlow = document.querySelector(".custom-cursor__glow");
@@ -477,8 +458,8 @@
         let targetY = cursorY - cursorHotspotY + cursorHeight / 2;
         trailDots.forEach((dot, index) => {
           const position = trailPositions[index];
-          position.x += (targetX - position.x) * 0.22;
-          position.y += (targetY - position.y) * 0.22;
+          position.x += (targetX - position.x) * 0.32;
+          position.y += (targetY - position.y) * 0.32;
           const scale = 1 - index * 0.06;
           dot.style.transform = `translate(${position.x - trailDotOffset}px, ${position.y - trailDotOffset}px) scale(${scale})`;
           dot.style.opacity = String(0.65 - index * 0.045);
@@ -590,9 +571,6 @@
         }
         revealText.dataset.started = "true";
         revealText.classList.remove("is-final");
-        if (questionText) {
-          questionText.textContent = "";
-        }
         const firstSentence = [
           "Did",
           "you",
@@ -626,7 +604,6 @@
         ];
         const secondSentence = ["weird", "huh?"];
         const finalSentence = ["discord.gg/ely"];
-        const questionSentence = ["Was", "He", "Innocent?"];
         let output = "";
         const firstLetterDelay = 67;
         const firstWordDelay = 155;
@@ -634,8 +611,6 @@
         const secondWordDelay = 187;
         const finalLetterDelay = 150;
         const finalWordDelay = 400;
-        const questionLetterDelay = 110;
-        const questionWordDelay = 200;
         const firstDeleteDelay = 20;
         const secondDeleteDelay = 80;
 
@@ -649,25 +624,6 @@
             output += " ";
             revealText.textContent = output;
             await sleep(wordDelay);
-          }
-        };
-
-        const typeSentenceTo = async (target, words, letterDelay, wordDelay) => {
-          if (!target) {
-            return;
-          }
-          let line = "";
-          for (const word of words) {
-            for (const letter of word) {
-              line += letter;
-              target.textContent = line;
-              await sleep(letterDelay);
-            }
-            line += " ";
-            target.textContent = line;
-            if (wordDelay > 0) {
-              await sleep(wordDelay);
-            }
           }
         };
 
@@ -694,10 +650,6 @@
         revealText.classList.add("is-final");
         startTypingSound();
         await typeSentence(finalSentence, finalLetterDelay, 0);
-        stopTypingSound();
-        await sleep(600);
-        startTypingSound();
-        await typeSentenceTo(questionText, questionSentence, questionLetterDelay, questionWordDelay);
         stopTypingSound();
       };
 
