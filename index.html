@@ -477,8 +477,8 @@
         let targetY = cursorY - cursorHotspotY + cursorHeight / 2;
         trailDots.forEach((dot, index) => {
           const position = trailPositions[index];
-          position.x += (targetX - position.x) * 0.32;
-          position.y += (targetY - position.y) * 0.32;
+          position.x += (targetX - position.x) * 0.22;
+          position.y += (targetY - position.y) * 0.22;
           const scale = 1 - index * 0.06;
           dot.style.transform = `translate(${position.x - trailDotOffset}px, ${position.y - trailDotOffset}px) scale(${scale})`;
           dot.style.opacity = String(0.65 - index * 0.045);
