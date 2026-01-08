@@ -646,6 +646,7 @@
         stopTypingSound();
         await sleep(3000);
         await deleteText(secondDeleteDelay);
+        await sleep(3000);
         revealText.classList.add("is-final");
         startTypingSound();
         await typeSentence(finalSentence, finalLetterDelay, finalWordDelay);
