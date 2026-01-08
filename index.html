@@ -611,7 +611,8 @@
         const secondWordDelay = 187;
         const finalLetterDelay = 150;
         const finalWordDelay = 400;
-        const deleteDelay = 40;
+        const firstDeleteDelay = 20;
+        const secondDeleteDelay = 80;
 
         const typeSentence = async (words, letterDelay, wordDelay) => {
           for (const word of words) {
@@ -626,11 +627,11 @@
           }
         };
 
-        const deleteText = async () => {
+        const deleteText = async (delay) => {
           while (output.length > 0) {
             output = output.slice(0, -1);
             revealText.textContent = output;
-            await sleep(deleteDelay);
+            await sleep(delay);
           }
         };
 
@@ -638,13 +639,13 @@
         await typeSentence(firstSentence, firstLetterDelay, firstWordDelay);
         stopTypingSound();
         await sleep(3000);
-        await deleteText();
+        await deleteText(firstDeleteDelay);
         await sleep(1000);
         startTypingSound();
         await typeSentence(secondSentence, secondLetterDelay, secondWordDelay);
         stopTypingSound();
         await sleep(2000);
-        await deleteText();
+        await deleteText(secondDeleteDelay);
         revealText.classList.add("is-final");
         startTypingSound();
         await typeSentence(finalSentence, finalLetterDelay, finalWordDelay);
