@@ -138,7 +138,7 @@
 
       .reveal-text {
         font-size: clamp(28px, 4vw, 56px);
-        font-family: "Brush Script MT", "Segoe Script", "Snell Roundhand", cursive;
+        font-family: "Fira Code", "JetBrains Mono", "Source Code Pro", "IBM Plex Mono", "Courier New", monospace;
         color: #fff;
         text-shadow: 0 0 12px rgba(255, 255, 255, 0.75), 0 0 24px rgba(255, 255, 255, 0.55);
         letter-spacing: 0.02em;
@@ -377,6 +377,7 @@
       const cursor = document.querySelector(".custom-cursor");
       const cursorGlow = document.querySelector(".custom-cursor__glow");
       const trailDots = Array.from(document.querySelectorAll(".cursor-trail__dot"));
+      let audioContext = null;
 
       let cursorX = window.innerWidth / 2;
       let cursorY = window.innerHeight / 2;
@@ -432,6 +433,26 @@
 
       const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+      const playTypingSound = () => {
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioContext.state === "suspended") {
+          audioContext.resume();
+        }
+        const oscillator = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        const now = audioContext.currentTime;
+        oscillator.type = "triangle";
+        oscillator.frequency.setValueAtTime(320 + Math.random() * 120, now);
+        gain.gain.setValueAtTime(0.04, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(now);
+        oscillator.stop(now + 0.09);
+      };
+
       const playRevealText = async () => {
         if (!revealText || revealText.dataset.started === "true") {
           return;
@@ -481,6 +502,7 @@
             for (const letter of word) {
               output += letter;
               revealText.textContent = output;
+              playTypingSound();
               await sleep(letterDelay);
             }
             output += " ";
@@ -510,6 +532,9 @@
         }
         hasScrolled = true;
         window.scrollTo({ top: revealSection.offsetTop, behavior: "smooth" });
+        const reducedVolume = Math.max(0, video.volume * 0.5);
+        video.volume = reducedVolume;
+        volumeSlider.value = String(reducedVolume);
         setTimeout(() => {
           playRevealText();
         }, 800);
