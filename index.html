@@ -611,7 +611,7 @@
         const secondWordDelay = 187;
         const finalLetterDelay = 150;
         const finalWordDelay = 400;
-        const firstDeleteDelay = 20;
+        const firstDeleteDelay = 30;
         const secondDeleteDelay = 80;
 
         const typeSentence = async (words, letterDelay, wordDelay) => {
@@ -644,7 +644,7 @@
         startTypingSound();
         await typeSentence(secondSentence, secondLetterDelay, secondWordDelay);
         stopTypingSound();
-        await sleep(2000);
+        await sleep(3000);
         await deleteText(secondDeleteDelay);
         revealText.classList.add("is-final");
         startTypingSound();
