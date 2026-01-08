@@ -138,7 +138,7 @@
 
       .reveal-text {
         font-size: clamp(28px, 4vw, 56px);
-        font-family: "Brush Script MT", "Segoe Script", "Snell Roundhand", cursive;
+        font-family: "Fira Code", "JetBrains Mono", "Source Code Pro", "IBM Plex Mono", "Courier New", monospace;
         color: #fff;
         text-shadow: 0 0 12px rgba(255, 255, 255, 0.75), 0 0 24px rgba(255, 255, 255, 0.55);
         letter-spacing: 0.02em;
@@ -510,6 +510,9 @@
         }
         hasScrolled = true;
         window.scrollTo({ top: revealSection.offsetTop, behavior: "smooth" });
+        const reducedVolume = Math.max(0, video.volume * 0.7);
+        video.volume = reducedVolume;
+        volumeSlider.value = String(reducedVolume);
         setTimeout(() => {
           playRevealText();
         }, 800);
