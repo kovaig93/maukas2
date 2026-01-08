@@ -152,8 +152,8 @@
       }
 
       .question-canvas {
-        width: min(1100px, 92vw);
-        height: clamp(120px, 16vw, 200px);
+        width: min(960px, 90vw);
+        height: clamp(80px, 12vw, 140px);
         margin-bottom: 24px;
       }
 
@@ -637,7 +637,7 @@
         const secondWordDelay = 187;
         const finalLetterDelay = 150;
         const finalWordDelay = 400;
-        const questionLetterDelay = 180;
+        const questionLetterDelay = 120;
         const firstDeleteDelay = 20;
         const secondDeleteDelay = 80;
 
@@ -667,9 +667,9 @@
           questionCanvas.width = rect.width * pixelRatio;
           questionCanvas.height = rect.height * pixelRatio;
           ctx.scale(pixelRatio, pixelRatio);
-          const fontSize = Math.min(96, Math.max(48, window.innerWidth * 0.065));
+          const fontSize = Math.min(72, Math.max(34, window.innerWidth * 0.05));
           ctx.font = `${fontSize}px "Brush Script MT", "Segoe Script", "Lucida Handwriting", cursive`;
-          ctx.lineWidth = 3.2;
+          ctx.lineWidth = 2.2;
           ctx.strokeStyle = "#d9c2ff";
           ctx.shadowColor = "rgba(124, 66, 255, 0.7)";
           ctx.shadowBlur = 18;
@@ -686,15 +686,9 @@
             ctx.clearRect(0, 0, rect.width, rect.height);
             ctx.strokeText(line, startX, baselineY);
             const drawnWidth = ctx.measureText(line).width;
-            const targetX = rect.left + startX + drawnWidth;
-            const targetY = rect.top + baselineY;
-            const steps = 6;
-            for (let step = 1; step <= steps; step += 1) {
-              const progress = step / steps;
-              cursorX = cursorX + (targetX - cursorX) * progress;
-              cursorY = cursorY + (targetY - cursorY) * progress;
-              await sleep(questionLetterDelay / steps);
-            }
+            cursorX = rect.left + startX + drawnWidth;
+            cursorY = rect.top + baselineY;
+            await sleep(questionLetterDelay);
           }
           isAutoDrawing = false;
         };
