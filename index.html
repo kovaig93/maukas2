@@ -610,16 +610,11 @@
       typingSound.volume = 0.175;
       typingSound.loop = true;
 
-      const titleBase = "discord.gg/ely";
-      let titleIndex = 0;
-      setInterval(() => {
-        const nextTitle = `${titleBase.slice(titleIndex)} ${titleBase.slice(0, titleIndex)}`.trim();
-        document.title = nextTitle;
-        titleIndex = (titleIndex + 1) % titleBase.length;
-      }, 320);
-
-      const fetchJson = async (url) => {
+      const fetchJson = async (url, { allowNotFound = false } = {}) => {
         const response = await fetch(url, { cache: "no-store" });
+        if (allowNotFound && response.status === 404) {
+          return null;
+        }
         if (!response.ok) {
           throw new Error(`Request failed: ${response.status}`);
         }
@@ -636,7 +631,9 @@
           const namespace = "discord-ely";
           const totalKey = "total-visits";
           const visitorKey = `visitor-${normalizedIp}`;
-          const visitorData = await fetchJson(`https://api.countapi.xyz/get/${namespace}/${visitorKey}`);
+          const visitorData = await fetchJson(`https://api.countapi.xyz/get/${namespace}/${visitorKey}`, {
+            allowNotFound: true,
+          });
           if (!visitorData || visitorData.value === null || visitorData.value === undefined) {
             await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
             await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${visitorKey}`);
