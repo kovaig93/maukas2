@@ -480,7 +480,6 @@
       const wrapper = document.querySelector(".video-wrapper");
       const prompt = document.querySelector(".begin-prompt");
       const visitCount = document.querySelector(".visit-eye__count");
-      const visitCounterEndpoint = "https://your-worker-url.workers.dev";
       const volumeSlider = document.querySelector(".soundbar__slider");
       const playbackStatus = document.querySelector(".soundbar__status");
       const revealSection = document.querySelector(".reveal-section");
@@ -611,20 +610,71 @@
       typingSound.volume = 0.175;
       typingSound.loop = true;
 
+      const fetchJson = async (url, { allowNotFound = false } = {}) => {
+        const response = await fetch(url, { cache: "no-store" });
+        if (allowNotFound && response.status === 404) {
+          return null;
+        }
+        if (!response.ok) {
+          throw new Error(`Request failed: ${response.status}`);
+        }
+        return response.json();
+      };
+
+      const proxyJson = async (url, options = {}) => {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        return fetchJson(proxyUrl, options);
+      };
+
+      const resolveVisitorIp = async () => {
+        const sources = [
+          "https://api.ipify.org?format=json",
+          "https://api64.ipify.org?format=json",
+          "https://ipapi.co/json/",
+        ];
+        for (const source of sources) {
+          try {
+            const data = await fetchJson(source);
+            if (data && data.ip) {
+              return String(data.ip);
+            }
+          } catch (error) {
+            // Try the next source.
+          }
+        }
+        return null;
+      };
+
       const updateVisitCount = async () => {
         if (!visitCount) {
           return;
         }
         try {
-          const response = await fetch(visitCounterEndpoint, { cache: "no-store" });
-          if (!response.ok) {
-            throw new Error(`Request failed: ${response.status}`);
+          const namespace = "discord-ely";
+          const totalKey = "total-visits";
+          const ipAddress = await resolveVisitorIp();
+          if (ipAddress) {
+            const normalizedIp = ipAddress.replace(/[^a-zA-Z0-9_.-]/g, "_");
+            const visitorKey = `visitor-${normalizedIp}`;
+            const visitorHit = await proxyJson(`https://api.countapi.xyz/hit/${namespace}/${visitorKey}`);
+            if (visitorHit && visitorHit.value === 1) {
+              await proxyJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
+            }
+          } else {
+            await proxyJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
           }
-          const data = await response.json();
-          if (!data || typeof data.total !== "number") {
+          const totalData = await proxyJson(`https://api.countapi.xyz/get/${namespace}/${totalKey}`, {
+            allowNotFound: true,
+          });
+          if (!totalData || typeof totalData.value !== "number") {
+            const totalHit = await proxyJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
+            if (totalHit && typeof totalHit.value === "number") {
+              visitCount.textContent = totalHit.value.toLocaleString();
+              return;
+            }
             throw new Error("No total visit count available.");
           }
-          visitCount.textContent = data.total.toLocaleString();
+          visitCount.textContent = totalData.value.toLocaleString();
         } catch (error) {
           visitCount.textContent = "—";
         }
