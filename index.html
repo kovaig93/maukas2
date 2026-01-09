@@ -98,16 +98,17 @@
         left: 24px;
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 14px;
+        gap: 12px;
+        padding: 10px 16px;
         border-radius: 999px;
         background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.3);
         color: #f5f5f7;
-        font-size: 11px;
-        letter-spacing: 0.3em;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
-        box-shadow: 0 0 16px rgba(255, 255, 255, 0.25);
+        box-shadow: 0 0 18px rgba(255, 255, 255, 0.3);
         backdrop-filter: blur(6px);
       }
 
@@ -135,7 +136,7 @@
 
       .visit-eye__count {
         font-variant-numeric: tabular-nums;
-        text-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
       }
 
       .begin-prompt {
@@ -438,7 +439,7 @@
       <div class="begin-overlay">
         <div class="visit-eye" aria-live="polite">
           <span class="visit-eye__orb" aria-hidden="true"></span>
-          <span class="visit-eye__count">Visits: 0</span>
+          <span class="visit-eye__count">0</span>
         </div>
         <div class="begin-prompt" role="button" aria-live="polite">Click to enter...</div>
       </div>
@@ -617,12 +618,39 @@
         titleIndex = (titleIndex + 1) % titleBase.length;
       }, 320);
 
-      if (visitCount) {
-        const storedVisits = Number(localStorage.getItem("ely_total_visits") || 0);
-        const nextVisits = storedVisits + 1;
-        localStorage.setItem("ely_total_visits", String(nextVisits));
-        visitCount.textContent = `Visits: ${nextVisits.toLocaleString()}`;
-      }
+      const fetchJson = async (url) => {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error(`Request failed: ${response.status}`);
+        }
+        return response.json();
+      };
+
+      const updateVisitCount = async () => {
+        if (!visitCount) {
+          return;
+        }
+        try {
+          const ipData = await fetchJson("https://api.ipify.org?format=json");
+          const normalizedIp = String(ipData.ip).replace(/[^a-zA-Z0-9_.-]/g, "_");
+          const namespace = "discord-ely";
+          const totalKey = "total-visits";
+          const visitorKey = `visitor-${normalizedIp}`;
+          const visitorData = await fetchJson(`https://api.countapi.xyz/get/${namespace}/${visitorKey}`);
+          if (!visitorData || visitorData.value === null || visitorData.value === undefined) {
+            await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
+            await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${visitorKey}`);
+          }
+          const totalData = await fetchJson(`https://api.countapi.xyz/get/${namespace}/${totalKey}`);
+          if (totalData && typeof totalData.value === "number") {
+            visitCount.textContent = totalData.value.toLocaleString();
+          }
+        } catch (error) {
+          visitCount.textContent = "—";
+        }
+      };
+
+      updateVisitCount();
 
       const startTypingSound = () => {
         if (!typingSound.paused) {
