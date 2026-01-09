@@ -631,17 +631,21 @@
           const namespace = "discord-ely";
           const totalKey = "total-visits";
           const visitorKey = `visitor-${normalizedIp}`;
-          const visitorData = await fetchJson(`https://api.countapi.xyz/get/${namespace}/${visitorKey}`, {
+          const visitorHit = await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${visitorKey}`);
+          if (visitorHit && visitorHit.value === 1) {
+            await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
+          }
+          const totalData = await fetchJson(`https://api.countapi.xyz/get/${namespace}/${totalKey}`, {
             allowNotFound: true,
           });
-          if (!visitorData || visitorData.value === null || visitorData.value === undefined) {
-            await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
-            await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${visitorKey}`);
+          if (!totalData || typeof totalData.value !== "number") {
+            const totalHit = await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
+            if (totalHit && typeof totalHit.value === "number") {
+              visitCount.textContent = totalHit.value.toLocaleString();
+            }
+            return;
           }
-          const totalData = await fetchJson(`https://api.countapi.xyz/get/${namespace}/${totalKey}`);
-          if (totalData && typeof totalData.value === "number") {
-            visitCount.textContent = totalData.value.toLocaleString();
-          }
+          visitCount.textContent = totalData.value.toLocaleString();
         } catch (error) {
           visitCount.textContent = "—";
         }
