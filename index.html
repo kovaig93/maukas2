@@ -621,6 +621,11 @@
         return response.json();
       };
 
+      const proxyJson = async (url, options = {}) => {
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        return fetchJson(proxyUrl, options);
+      };
+
       const resolveVisitorIp = async () => {
         const sources = [
           "https://api.ipify.org?format=json",
@@ -651,18 +656,18 @@
           if (ipAddress) {
             const normalizedIp = ipAddress.replace(/[^a-zA-Z0-9_.-]/g, "_");
             const visitorKey = `visitor-${normalizedIp}`;
-            const visitorHit = await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${visitorKey}`);
+            const visitorHit = await proxyJson(`https://api.countapi.xyz/hit/${namespace}/${visitorKey}`);
             if (visitorHit && visitorHit.value === 1) {
-              await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
+              await proxyJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
             }
           } else {
-            await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
+            await proxyJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
           }
-          const totalData = await fetchJson(`https://api.countapi.xyz/get/${namespace}/${totalKey}`, {
+          const totalData = await proxyJson(`https://api.countapi.xyz/get/${namespace}/${totalKey}`, {
             allowNotFound: true,
           });
           if (!totalData || typeof totalData.value !== "number") {
-            const totalHit = await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
+            const totalHit = await proxyJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
             if (totalHit && typeof totalHit.value === "number") {
               visitCount.textContent = totalHit.value.toLocaleString();
               return;
