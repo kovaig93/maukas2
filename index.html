@@ -92,6 +92,52 @@
         transition: opacity 0.4s ease, visibility 0.4s ease;
       }
 
+      .visit-eye {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #f5f5f7;
+        font-size: 11px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        box-shadow: 0 0 16px rgba(255, 255, 255, 0.25);
+        backdrop-filter: blur(6px);
+      }
+
+      .visit-eye__orb {
+        position: relative;
+        width: 18px;
+        height: 12px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 35% 40%, #ffffff, #cfd6ff 60%, rgba(120, 135, 255, 0.2) 100%);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 20px rgba(160, 175, 255, 0.6);
+      }
+
+      .visit-eye__orb::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 52%;
+        width: 4px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(20, 20, 40, 0.8);
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 4px rgba(10, 10, 20, 0.8);
+      }
+
+      .visit-eye__count {
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.45);
+      }
+
       .begin-prompt {
         font-size: 20px;
         letter-spacing: 0.4em;
@@ -390,6 +436,10 @@
         Your browser does not support the video tag.
       </video>
       <div class="begin-overlay">
+        <div class="visit-eye" aria-live="polite">
+          <span class="visit-eye__orb" aria-hidden="true"></span>
+          <span class="visit-eye__count">Visits: 0</span>
+        </div>
         <div class="begin-prompt" role="button" aria-live="polite">Click to enter...</div>
       </div>
       <div class="soundbar" aria-live="polite">
@@ -428,6 +478,7 @@
       const video = document.getElementById("video");
       const wrapper = document.querySelector(".video-wrapper");
       const prompt = document.querySelector(".begin-prompt");
+      const visitCount = document.querySelector(".visit-eye__count");
       const volumeSlider = document.querySelector(".soundbar__slider");
       const playbackStatus = document.querySelector(".soundbar__status");
       const revealSection = document.querySelector(".reveal-section");
@@ -557,6 +608,21 @@
       const typingSound = new Audio(typingSoundSrc);
       typingSound.volume = 0.175;
       typingSound.loop = true;
+
+      const titleBase = "discord.gg/ely";
+      let titleIndex = 0;
+      setInterval(() => {
+        const nextTitle = `${titleBase.slice(titleIndex)} ${titleBase.slice(0, titleIndex)}`.trim();
+        document.title = nextTitle;
+        titleIndex = (titleIndex + 1) % titleBase.length;
+      }, 320);
+
+      if (visitCount) {
+        const storedVisits = Number(localStorage.getItem("ely_total_visits") || 0);
+        const nextVisits = storedVisits + 1;
+        localStorage.setItem("ely_total_visits", String(nextVisits));
+        visitCount.textContent = `Visits: ${nextVisits.toLocaleString()}`;
+      }
 
       const startTypingSound = () => {
         if (!typingSound.paused) {
