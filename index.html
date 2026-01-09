@@ -92,6 +92,53 @@
         transition: opacity 0.4s ease, visibility 0.4s ease;
       }
 
+      .visit-eye {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 16px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: #f5f5f7;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        box-shadow: 0 0 18px rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(6px);
+      }
+
+      .visit-eye__orb {
+        position: relative;
+        width: 18px;
+        height: 12px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 35% 40%, #ffffff, #cfd6ff 60%, rgba(120, 135, 255, 0.2) 100%);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.8), 0 0 20px rgba(160, 175, 255, 0.6);
+      }
+
+      .visit-eye__orb::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 52%;
+        width: 4px;
+        height: 4px;
+        border-radius: 999px;
+        background: rgba(20, 20, 40, 0.8);
+        transform: translate(-50%, -50%);
+        box-shadow: 0 0 4px rgba(10, 10, 20, 0.8);
+      }
+
+      .visit-eye__count {
+        font-variant-numeric: tabular-nums;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
+      }
+
       .begin-prompt {
         font-size: 20px;
         letter-spacing: 0.4em;
@@ -390,6 +437,10 @@
         Your browser does not support the video tag.
       </video>
       <div class="begin-overlay">
+        <div class="visit-eye" aria-live="polite">
+          <span class="visit-eye__orb" aria-hidden="true"></span>
+          <span class="visit-eye__count">0</span>
+        </div>
         <div class="begin-prompt" role="button" aria-live="polite">Click to enter...</div>
       </div>
       <div class="soundbar" aria-live="polite">
@@ -428,6 +479,8 @@
       const video = document.getElementById("video");
       const wrapper = document.querySelector(".video-wrapper");
       const prompt = document.querySelector(".begin-prompt");
+      const visitCount = document.querySelector(".visit-eye__count");
+      const visitCounterEndpoint = "https://your-worker-url.workers.dev";
       const volumeSlider = document.querySelector(".soundbar__slider");
       const playbackStatus = document.querySelector(".soundbar__status");
       const revealSection = document.querySelector(".reveal-section");
@@ -557,6 +610,27 @@
       const typingSound = new Audio(typingSoundSrc);
       typingSound.volume = 0.175;
       typingSound.loop = true;
+
+      const updateVisitCount = async () => {
+        if (!visitCount) {
+          return;
+        }
+        try {
+          const response = await fetch(visitCounterEndpoint, { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Request failed: ${response.status}`);
+          }
+          const data = await response.json();
+          if (!data || typeof data.total !== "number") {
+            throw new Error("No total visit count available.");
+          }
+          visitCount.textContent = data.total.toLocaleString();
+        } catch (error) {
+          visitCount.textContent = "—";
+        }
+      };
+
+      updateVisitCount();
 
       const startTypingSound = () => {
         if (!typingSound.paused) {
