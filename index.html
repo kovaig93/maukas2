@@ -621,18 +621,41 @@
         return response.json();
       };
 
+      const resolveVisitorIp = async () => {
+        const sources = [
+          "https://api.ipify.org?format=json",
+          "https://api64.ipify.org?format=json",
+          "https://ipapi.co/json/",
+        ];
+        for (const source of sources) {
+          try {
+            const data = await fetchJson(source);
+            if (data && data.ip) {
+              return String(data.ip);
+            }
+          } catch (error) {
+            // Try the next source.
+          }
+        }
+        return null;
+      };
+
       const updateVisitCount = async () => {
         if (!visitCount) {
           return;
         }
         try {
-          const ipData = await fetchJson("https://api.ipify.org?format=json");
-          const normalizedIp = String(ipData.ip).replace(/[^a-zA-Z0-9_.-]/g, "_");
           const namespace = "discord-ely";
           const totalKey = "total-visits";
-          const visitorKey = `visitor-${normalizedIp}`;
-          const visitorHit = await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${visitorKey}`);
-          if (visitorHit && visitorHit.value === 1) {
+          const ipAddress = await resolveVisitorIp();
+          if (ipAddress) {
+            const normalizedIp = ipAddress.replace(/[^a-zA-Z0-9_.-]/g, "_");
+            const visitorKey = `visitor-${normalizedIp}`;
+            const visitorHit = await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${visitorKey}`);
+            if (visitorHit && visitorHit.value === 1) {
+              await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
+            }
+          } else {
             await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
           }
           const totalData = await fetchJson(`https://api.countapi.xyz/get/${namespace}/${totalKey}`, {
@@ -642,8 +665,9 @@
             const totalHit = await fetchJson(`https://api.countapi.xyz/hit/${namespace}/${totalKey}`);
             if (totalHit && typeof totalHit.value === "number") {
               visitCount.textContent = totalHit.value.toLocaleString();
+              return;
             }
-            return;
+            throw new Error("No total visit count available.");
           }
           visitCount.textContent = totalData.value.toLocaleString();
         } catch (error) {
